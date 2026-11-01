@@ -22,7 +22,7 @@ source.include_patterns = assets/*,static/*
 version = 1.0.0
 
 # (list) Application requirements
-# FIXED: Replaced buggy 'master' version with stable, clean deployment recipes 
+# FIXED: Let python3 dynamically match the host runner version
 requirements = python3, kivy==2.3.0, android, pyjnius>=1.8.0
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
@@ -51,7 +51,6 @@ android.minapi = 24
 android.sdk = 34
 
 # (str) Android NDK version to use
-# FIXED: Upgraded to 26b to smoothly link with GitHub Action's server environment
 android.ndk = 26b
 
 # (bool) If True, then skip trying to update the Android sdk
@@ -72,5 +71,4 @@ android.allow_backup = True
 log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
-# FIXED: Disabled warning check so headless cloud scripts never halt/freeze
 warn_on_root = 0
