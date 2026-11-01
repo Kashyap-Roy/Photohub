@@ -1,0 +1,639 @@
+TIP pass --env-dir and --sdist-extract-dir to keep the build environment and sources, then see https://build.pypa.io/en/stable/how-to/troubleshooting.html#debug-a-failed-build for help debugging a failed build
+ERROR Backend subprocess exited when trying to invoke build_wheel
+
+
+  STDERR:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/toolchain.py", line 1290, in <module>
+    main()
+    ~~~~^^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/entrypoints.py", line 18, in main
+    ToolchainCL()
+    ~~~~~~~~~~~^^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/toolchain.py", line 721, in __init__
+    getattr(self, command)(args)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/toolchain.py", line 104, in wrapper_func
+    build_dist_from_args(ctx, dist, args)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/toolchain.py", line 163, in build_dist_from_args
+    build_recipes(build_order, python_modules, ctx,
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                  getattr(args, "private", None),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+                  ),
+                  ^^
+                 )
+                 ^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/build.py", line 530, in build_recipes
+    recipe.build_arch(arch)
+    ~~~~~~~~~~~~~~~~~^^^^^^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/recipe.py", line 1590, in build_arch
+    super().build_arch(arch)
+    ~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/recipe.py", line 1401, in build_arch
+    shprint(
+    ~~~~~~~^
+        sh.Command(self.real_hostpython_location), *build_args, _env=env
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/content/photohub/.buildozer/android/platform/python-for-android/pythonforandroid/logger.py", line 174, in shprint
+    for line in output:
+                ^^^^^^
+  File "/root/.local/lib/python3.13/site-packages/sh/__init__.py", line 876, in __next__
+    self.wait()
+    ~~~~~~~~~^^
+  File "/root/.local/lib/python3.13/site-packages/sh/__init__.py", line 793, in wait
+    self.handle_command_exit_code(exit_code)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/root/.local/lib/python3.13/site-packages/sh/__init__.py", line 820, in handle_command_exit_code
+    raise exc
+sh.ErrorReturnCode_1: 
+
+  RAN: /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/hostpython3/desktop/hostpython3/native-build/root/usr/local/bin/python -m build --wheel --config-setting builddir=/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_android_build -Csetup-args=-Dblas=none -Csetup-args=-Dlapack=none -Csetup-args=--cross-file -Csetup-args=/tmp/android.meson.cross
+
+  STDOUT:
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - Cython>=3.0.6
+  - meson-python>=0.15.0
+* Getting build dependencies for wheel...
+* Installed build dependency versions:
+  - cython==3.3.0
+  - meson-python==0.22.1
+* Building wheel...
++ /tmp/build-env-qnbm7gf0/bin/python /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/vendored-meson/meson/meson.py setup /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_android_build -Dbuildtype=release -Db_ndebug=if-release -Db_vscrt=md -Dblas=none -Dlapack=none --cross-file /tmp/android.meson.cross --native-file=/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_android_build/meson-python-native-file.ini
+The Meson build system
+Version: 1.6.1
+Source dir: /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy
+Build dir: /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_android_build
+Build type: cross build
+Project name: NumPy
+Project version: 2.3.0
+C compiler for the host machine: /root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang (clang 14.0.6 "Android (8490178, based on r450784d) clang version 14.0.6 (https://android.googlesource.com/toolchain/llvm-project 4c603efb0cca074e9238af8b4106c30add4418f6)")
+C linker for the host machine: /root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang ld.lld 14.0.6
+C++ compiler for the host machine: /root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++ (clang 14.0.6 "Android (8490178, based on r450784d) clang version 14.0.6 (https://android.googlesource.com/toolchain/llvm-project 4c603efb0cca074e9238af8b4106c30add4418f6)")
+C++ linker for the host machine: /root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++ ld.lld 14.0.6
+Cython compiler for the host machine: cython (cython 3.3.0)
+C compiler for the build machine: cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the build machine: cc ld.lld 14.0.6
+C++ compiler for the build machine: c++ (gcc 13.3.0 "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C++ linker for the build machine: c++ ld.lld 14.0.6
+Cython compiler for the build machine: cython (cython 3.3.0)
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Host machine cpu family: aarch64
+Host machine cpu: aarch64
+Target machine cpu family: aarch64
+Target machine cpu: aarch64
+Program python found: YES (/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_wrappers/python)
+Found pkg-config: NO
+Run-time dependency python found: YES 3.14
+Has header "Python.h" with dependency python: YES 
+Compiler for C supports arguments -fno-strict-aliasing: YES 
+Compiler for C supports arguments -ftrapping-math: YES 
+Message: NumPy is being built against a version of Clang that does not strictly enforce floating-point exception handling. Workarounds will be used, which may impact performance.
+Consider upgrading Clang to the latest version.
+Message: Appending option "detect" to "cpu-baseline" due to detecting global architecture c_arg "-march=armv8-a"
+Test features "NEON NEON_FP16 NEON_VFPV4 ASIMD ASIMDHP ASIMDFHM SVE" : Parial support, missing(ASIMDHP ASIMDFHM SVE) 
+Message: During parsing cpu-dispatch: The following CPU features were ignored due to platform incompatibility or lack of support:
+"XOP FMA4"
+Test features "NEON NEON_FP16 NEON_VFPV4 ASIMD" : Supported 
+Test features "ASIMDHP" : Supported 
+Test features "ASIMDFHM" : Supported 
+Test features "SVE" : Supported 
+Configuring npy_cpu_dispatch_config.h using configuration
+Message: 
+CPU Optimization Options
+  baseline:
+    Requested : min+detect
+    Enabled   : NEON NEON_FP16 NEON_VFPV4 ASIMD
+  dispatch:
+    Requested : max -xop -fma4
+    Enabled   : ASIMDHP ASIMDFHM SVE
+
+Library m found: YES
+Found CMake: NO
+Run-time dependency none found: NO (tried pkgconfig and cmake)
+Run-time dependency none found: NO (tried pkgconfig and cmake)
+Checking if "Check atomic builtins without -latomic" : links: YES 
+Program _build_utils/process_src_template.py found: YES (/tmp/build-env-qnbm7gf0/bin/python /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/numpy/_build_utils/process_src_template.py)
+Program _build_utils/tempita.py found: YES (/tmp/build-env-qnbm7gf0/bin/python /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/numpy/_build_utils/tempita.py)
+Configuring __config__.py using configuration
+../numpy/meson.build:445: WARNING: The variable(s) 'BLAS_INCLUDEDIR', 'BLAS_LIBDIR', 'BLAS_OPENBLAS_CONFIG', 'BLAS_PCFILEDIR', 'BLAS_TYPE_NAME', 'BLAS_VERSION', 'LAPACK_INCLUDEDIR', 'LAPACK_LIBDIR', 'LAPACK_OPENBLAS_CONFIG', 'LAPACK_PCFILEDIR', 'LAPACK_TYPE_NAME', 'LAPACK_VERSION' in the input file 'numpy/__config__.py.in' are not present in the given configuration data.
+Checking for size of "short" : 2 
+Checking for size of "int" : 4 
+Checking for size of "long" : 8 
+Checking for size of "long long" : 8 
+Checking for size of "float" : 4 
+Checking for size of "double" : 8 
+Checking for size of "long double" : 16 
+Checking for size of "size_t" : 8 
+Checking for size of "size_t" : 8 
+Checking for size of "wchar_t" : 4 
+Checking for size of "off_t" : 8 
+Checking for size of "Py_intptr_t" with dependency python: 8 
+Checking for size of "PY_LONG_LONG" with dependency python: 8 
+Has header "complex.h" : YES 
+Checking for type "complex float" : YES 
+Checking for size of "complex float" : 8 
+Checking for type "complex double" : YES 
+Checking for size of "complex double" : 16 
+Checking for type "complex long double" : YES 
+Checking for size of "complex long double" : 32 
+Checking for function "sin" with dependency -lm: YES 
+Checking for function "cos" with dependency -lm: YES 
+Checking for function "tan" with dependency -lm: YES 
+Checking for function "sinh" with dependency -lm: YES 
+Checking for function "cosh" with dependency -lm: YES 
+Checking for function "tanh" with dependency -lm: YES 
+Checking for function "fabs" with dependency -lm: YES 
+Checking for function "floor" with dependency -lm: YES 
+Checking for function "ceil" with dependency -lm: YES 
+Checking for function "sqrt" with dependency -lm: YES 
+Checking for function "log10" with dependency -lm: YES 
+Checking for function "log" with dependency -lm: YES 
+Checking for function "exp" with dependency -lm: YES 
+Checking for function "asin" with dependency -lm: YES 
+Checking for function "acos" with dependency -lm: YES 
+Checking for function "atan" with dependency -lm: YES 
+Checking for function "fmod" with dependency -lm: YES 
+Checking for function "modf" with dependency -lm: YES 
+Checking for function "frexp" with dependency -lm: YES 
+Checking for function "ldexp" with dependency -lm: YES 
+Checking for function "expm1" with dependency -lm: YES 
+Checking for function "log1p" with dependency -lm: YES 
+Checking for function "acosh" with dependency -lm: YES 
+Checking for function "asinh" with dependency -lm: YES 
+Checking for function "atanh" with dependency -lm: YES 
+Checking for function "rint" with dependency -lm: YES 
+Checking for function "trunc" with dependency -lm: YES 
+Checking for function "exp2" with dependency -lm: YES 
+Checking for function "copysign" with dependency -lm: YES 
+Checking for function "nextafter" with dependency -lm: YES 
+Checking for function "cbrt" with dependency -lm: YES 
+Checking for function "log2" with dependency -lm: YES 
+Checking for function "pow" with dependency -lm: YES 
+Checking for function "hypot" with dependency -lm: YES 
+Checking for function "atan2" with dependency -lm: YES 
+Checking for function "csin" with dependency -lm: YES 
+Checking for function "csinh" with dependency -lm: YES 
+Checking for function "ccos" with dependency -lm: YES 
+Checking for function "ccosh" with dependency -lm: YES 
+Checking for function "ctan" with dependency -lm: YES 
+Checking for function "ctanh" with dependency -lm: YES 
+Checking for function "creal" with dependency -lm: YES 
+Checking for function "cimag" with dependency -lm: YES 
+Checking for function "conj" with dependency -lm: YES 
+Checking for function "strtoll" : YES 
+Checking for function "strtoull" : YES 
+Checking for function "cabs" with dependency -lm: YES 
+Checking for function "cabsf" with dependency -lm: YES 
+Checking for function "cabsl" with dependency -lm: YES 
+Checking for function "cacos" with dependency -lm: YES 
+Checking for function "cacosf" with dependency -lm: YES 
+Checking for function "cacosl" with dependency -lm: NO 
+Checking for function "cacosh" with dependency -lm: YES 
+Checking for function "cacoshf" with dependency -lm: YES 
+Checking for function "cacoshl" with dependency -lm: NO 
+Checking for function "carg" with dependency -lm: YES 
+Checking for function "cargf" with dependency -lm: YES 
+Checking for function "cargl" with dependency -lm: YES 
+Checking for function "casin" with dependency -lm: YES 
+Checking for function "casinf" with dependency -lm: YES 
+Checking for function "casinl" with dependency -lm: NO 
+Checking for function "casinh" with dependency -lm: YES 
+Checking for function "casinhf" with dependency -lm: YES 
+Checking for function "casinhl" with dependency -lm: NO 
+Checking for function "catan" with dependency -lm: YES 
+Checking for function "catanf" with dependency -lm: YES 
+Checking for function "catanl" with dependency -lm: NO 
+Checking for function "catanh" with dependency -lm: YES 
+Checking for function "catanhf" with dependency -lm: YES 
+Checking for function "catanhl" with dependency -lm: NO 
+Checking for function "cexp" with dependency -lm: YES 
+Checking for function "cexpf" with dependency -lm: YES 
+Checking for function "cexpl" with dependency -lm: NO 
+Checking for function "clog" with dependency -lm: NO 
+Checking for function "clogf" with dependency -lm: NO 
+Checking for function "clogl" with dependency -lm: NO 
+Checking for function "cpow" with dependency -lm: NO 
+Checking for function "cpowf" with dependency -lm: NO 
+Checking for function "cpowl" with dependency -lm: NO 
+Checking for function "csqrt" with dependency -lm: YES 
+Checking for function "csqrtf" with dependency -lm: YES 
+Checking for function "csqrtl" with dependency -lm: YES 
+Checking for function "csin" with dependency -lm: YES (cached)
+Checking for function "csinf" with dependency -lm: YES 
+Checking for function "csinl" with dependency -lm: NO 
+Checking for function "csinh" with dependency -lm: YES (cached)
+Checking for function "csinhf" with dependency -lm: YES 
+Checking for function "csinhl" with dependency -lm: NO 
+Checking for function "ccos" with dependency -lm: YES (cached)
+Checking for function "ccosf" with dependency -lm: YES 
+Checking for function "ccosl" with dependency -lm: NO 
+Checking for function "ccosh" with dependency -lm: YES (cached)
+Checking for function "ccoshf" with dependency -lm: YES 
+Checking for function "ccoshl" with dependency -lm: NO 
+Checking for function "ctan" with dependency -lm: YES (cached)
+Checking for function "ctanf" with dependency -lm: YES 
+Checking for function "ctanl" with dependency -lm: NO 
+Checking for function "ctanh" with dependency -lm: YES (cached)
+Checking for function "ctanhf" with dependency -lm: YES 
+Checking for function "ctanhl" with dependency -lm: NO 
+Checking for function "isfinite" with dependency -lm: YES 
+Header "Python.h" has symbol "isfinite" with dependency python: YES 
+Checking for function "isinf" with dependency -lm: YES 
+Header "Python.h" has symbol "isinf" with dependency python: YES 
+Checking for function "isnan" with dependency -lm: YES 
+Header "Python.h" has symbol "isnan" with dependency python: YES 
+Checking for function "signbit" with dependency -lm: YES 
+Header "Python.h" has symbol "signbit" with dependency python: YES 
+Checking if "thread_local" compiles: NO 
+Checking if "_Thread_local" compiles: YES 
+Checking if "__thread" compiles: YES 
+Checking if "__declspec(thread)" compiles: NO 
+Checking for function "fallocate" : YES 
+Header "Python.h" has symbol "HAVE_FTELLO" with dependency python: YES 
+Header "Python.h" has symbol "HAVE_FSEEKO" with dependency python: YES 
+Checking for function "backtrace" : NO 
+Checking for function "madvise" : YES 
+Has header "features.h" : YES 
+Has header "xlocale.h" : YES 
+Has header "dlfcn.h" : YES 
+Has header "execinfo.h" : YES 
+Has header "libunwind.h" : NO 
+Has header "sys/mman.h" : YES 
+Checking for function "strtold_l" : YES 
+Checking if "__attribute__((optimize("unroll-loops")))" compiles: NO 
+Checking if "__attribute__((optimize("O3")))" compiles: NO 
+Checking if "__attribute__((nonnull(1)))" compiles: NO 
+Compiler for C supports arguments -O3: YES 
+Has header "endian.h" : YES 
+Has header "sys/endian.h" : YES 
+Compiler for C supports function attribute visibility:hidden: YES 
+Configuring config.h using configuration
+Configuring _numpyconfig.h using configuration
+Configuring npymath.ini using configuration
+Configuring mlib.ini using configuration
+Configuring numpy.pc using configuration
+Generating multi-targets for "_umath_tests.dispatch.h" 
+  Enabled targets: ASIMDHP, baseline
+Generating multi-targets for "argfunc.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "x86_simd_argsort.dispatch.h" 
+  Enabled targets: 
+Generating multi-targets for "x86_simd_qsort.dispatch.h" 
+  Enabled targets: 
+Generating multi-targets for "x86_simd_qsort_16bit.dispatch.h" 
+  Enabled targets: 
+Generating multi-targets for "highway_qsort.dispatch.h" 
+  Enabled targets: ASIMD
+Generating multi-targets for "highway_qsort_16bit.dispatch.h" 
+  Enabled targets: ASIMDHP
+Generating multi-targets for "loops_arithm_fp.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_arithmetic.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_comparison.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_exponent_log.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_hyperbolic.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_logical.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_minmax.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_modulo.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_trigonometric.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_umath_fp.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_unary.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_unary_fp.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_unary_fp_le.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_unary_complex.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_autovec.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "loops_half.dispatch.h" 
+  Enabled targets: baseline
+Generating multi-targets for "_simd.dispatch.h" 
+  Enabled targets: baseline
+Build targets in project: 66
+
+NumPy 2.3.0
+
+  User defined options
+    Cross files : /tmp/android.meson.cross
+    Native files: /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_android_build/meson-python-native-file.ini
+    b_ndebug    : if-release
+    b_vscrt     : md
+    blas        : none
+    buildtype   : release
+    lapack      : none
+
+Found ninja-1.13.2.git.kitware.jobserver-pipe-1 at /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/hostpython3/desktop/hostpython3/native-build/root/usr/local/bin/ninja
++ /content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/hostpython3/desktop/hostpython3/native-build/root/usr/local/bin/ninja
+[1/340] Copying file numpy/__init__.py
+[2/340] Copying file numpy/__init__.pxd
+[3/340] Generating numpy/_core/npy_math_internal.h with a custom command
+[4/340] Copying file numpy/__init__.cython-30.pxd
+[5/340] Generating 'numpy/_core/libnpymath.a.p/ieee754.c'
+[6/340] Generating numpy/_core/__umath_generated with a custom command
+[7/340] Generating 'numpy/_core/libnpymath.a.p/npy_math_complex.c'
+[8/340] Generating 'numpy/_core/libargfunc.dispatch.h_baseline.a.p/arraytypes.h'
+[9/340] Generating numpy/_core/__multiarray_api with a custom command
+[10/340] Generating 'numpy/_core/libargfunc.dispatch.h_baseline.a.p/npy_sort.h'
+[11/340] Generating numpy/_core/__ufunc_api with a custom command
+[12/340] Generating 'numpy/_core/libhighway_qsort.dispatch.h_ASIMD.a.p/arraytypes.h'
+[13/340] Generating 'numpy/_core/libargfunc.dispatch.h_baseline.a.p/argfunc.dispatch.c'
+[14/340] Generating 'numpy/_core/libhighway_qsort.dispatch.h_ASIMD.a.p/npy_sort.h'
+[15/340] Generating 'numpy/_core/libloops_arithm_fp.dispatch.h_baseline.a.p/loops.h'
+[16/340] Generating 'numpy/_core/libhighway_qsort_16bit.dispatch.h_ASIMDHP.a.p/arraytypes.h'
+[17/340] Generating 'numpy/_core/libhighway_qsort_16bit.dispatch.h_ASIMDHP.a.p/npy_sort.h'
+[18/340] Generating 'numpy/_core/libloops_arithm_fp.dispatch.h_baseline.a.p/loops_utils.h'
+[19/340] Generating 'numpy/_core/libloops_arithmetic.dispatch.h_baseline.a.p/loops.h'
+[20/340] Generating 'numpy/_core/libloops_arithm_fp.dispatch.h_baseline.a.p/loops_arithm_fp.dispatch.c'
+[21/340] Generating 'numpy/_core/libloops_arithmetic.dispatch.h_baseline.a.p/loops_utils.h'
+[22/340] Generating 'numpy/_core/libloops_comparison.dispatch.h_baseline.a.p/loops.h'
+[23/340] Generating 'numpy/_core/libloops_comparison.dispatch.h_baseline.a.p/loops_utils.h'
+[24/340] Generating 'numpy/_core/libloops_arithmetic.dispatch.h_baseline.a.p/loops_arithmetic.dispatch.c'
+[25/340] Generating 'numpy/_core/libloops_comparison.dispatch.h_baseline.a.p/loops_comparison.dispatch.c'
+[26/340] Generating 'numpy/_core/libloops_exponent_log.dispatch.h_baseline.a.p/loops_utils.h'
+[27/340] Generating 'numpy/_core/libloops_exponent_log.dispatch.h_baseline.a.p/loops.h'
+[28/340] Generating 'numpy/_core/libloops_exponent_log.dispatch.h_baseline.a.p/loops_exponent_log.dispatch.c'
+[29/340] Generating 'numpy/_core/libloops_hyperbolic.dispatch.h_baseline.a.p/loops_utils.h'
+[30/340] Generating 'numpy/_core/libloops_hyperbolic.dispatch.h_baseline.a.p/loops.h'
+[31/340] Generating 'numpy/_core/libloops_hyperbolic.dispatch.h_baseline.a.p/loops_hyperbolic.dispatch.cpp'
+[32/340] Generating 'numpy/_core/libloops_logical.dispatch.h_baseline.a.p/loops_utils.h'
+[33/340] Generating 'numpy/_core/libloops_logical.dispatch.h_baseline.a.p/loops.h'
+[34/340] Generating 'numpy/_core/libloops_minmax.dispatch.h_baseline.a.p/loops.h'
+[35/340] Generating 'numpy/_core/libloops_minmax.dispatch.h_baseline.a.p/loops_utils.h'
+[36/340] Generating 'numpy/_core/libloops_minmax.dispatch.h_baseline.a.p/loops_minmax.dispatch.c'
+[37/340] Generating 'numpy/_core/libloops_modulo.dispatch.h_baseline.a.p/loops.h'
+[38/340] Generating 'numpy/_core/libloops_modulo.dispatch.h_baseline.a.p/loops_utils.h'
+[39/340] Generating 'numpy/_core/libloops_modulo.dispatch.h_baseline.a.p/loops_modulo.dispatch.c'
+[40/340] Generating 'numpy/_core/libloops_trigonometric.dispatch.h_baseline.a.p/loops_utils.h'
+[41/340] Generating 'numpy/_core/libloops_trigonometric.dispatch.h_baseline.a.p/loops.h'
+[42/340] Generating 'numpy/_core/libloops_umath_fp.dispatch.h_baseline.a.p/loops.h'
+[43/340] Generating 'numpy/_core/libloops_umath_fp.dispatch.h_baseline.a.p/loops_utils.h'
+[44/340] Generating 'numpy/_core/libloops_umath_fp.dispatch.h_baseline.a.p/loops_umath_fp.dispatch.c'
+[45/340] Generating 'numpy/_core/libloops_unary.dispatch.h_baseline.a.p/loops.h'
+[46/340] Generating 'numpy/_core/libloops_unary.dispatch.h_baseline.a.p/loops_utils.h'
+[47/340] Generating 'numpy/_core/libloops_unary.dispatch.h_baseline.a.p/loops_unary.dispatch.c'
+[48/340] Generating 'numpy/_core/libloops_unary_fp.dispatch.h_baseline.a.p/loops_utils.h'
+[49/340] Generating 'numpy/_core/libloops_unary_fp.dispatch.h_baseline.a.p/loops.h'
+[50/340] Generating 'numpy/_core/libloops_unary_fp_le.dispatch.h_baseline.a.p/loops.h'
+[51/340] Generating 'numpy/_core/libloops_unary_fp_le.dispatch.h_baseline.a.p/loops_utils.h'
+[52/340] Generating 'numpy/_core/libloops_unary_fp.dispatch.h_baseline.a.p/loops_unary_fp.dispatch.c'
+[53/340] Generating 'numpy/_core/libloops_unary_complex.dispatch.h_baseline.a.p/loops_utils.h'
+[54/340] Generating 'numpy/_core/libloops_unary_fp_le.dispatch.h_baseline.a.p/loops_unary_fp_le.dispatch.c'
+[55/340] Generating 'numpy/_core/libloops_unary_complex.dispatch.h_baseline.a.p/loops.h'
+[56/340] Generating 'numpy/_core/libloops_unary_complex.dispatch.h_baseline.a.p/loops_unary_complex.dispatch.c'
+[57/340] Generating 'numpy/_core/libloops_autovec.dispatch.h_baseline.a.p/loops_utils.h'
+[58/340] Generating 'numpy/_core/libloops_autovec.dispatch.h_baseline.a.p/loops.h'
+[59/340] Generating 'numpy/_core/libloops_autovec.dispatch.h_baseline.a.p/loops_autovec.dispatch.c'
+[60/340] Generating 'numpy/_core/libloops_half.dispatch.h_baseline.a.p/loops_utils.h'
+[61/340] Generating 'numpy/_core/libloops_half.dispatch.h_baseline.a.p/loops.h'
+[62/340] Generating 'numpy/_core/libloops_half.dispatch.h_baseline.a.p/loops_half.dispatch.c'
+[63/340] Generating 'numpy/_core/lib_simd.dispatch.h_baseline.a.p/_simd_inc.h'
+[64/340] Generating 'numpy/_core/lib_simd.dispatch.h_baseline.a.p/_simd_data.inc'
+[65/340] Copying file numpy/random/__init__.py
+[66/340] Generating 'numpy/_core/lib_simd.dispatch.h_baseline.a.p/_simd.dispatch.c'
+[67/340] Copying file numpy/random/__init__.pxd
+[68/340] Copying file numpy/random/bit_generator.pxd
+[69/340] Copying file numpy/random/_common.pxd
+[70/340] Copying file numpy/random/c_distributions.pxd
+[71/340] Generating numpy/random/_bounded_integer_pxd with a custom command
+[72/340] Copying file numpy/random/_generator.pyx
+[73/340] Generating numpy/random/_bounded_integer_pyx with a custom command
+[74/340] Copying file numpy/random/mtrand.pyx
+[75/340] Compiling C object numpy/_core/libnpymath.a.p/meson-generated_ieee754.c.o
+[76/340] Compiling C++ object numpy/_core/libhighway.a.p/src_highway_hwy_abort.cc.o
+[77/340] Compiling C object numpy/_core/libnpymath.a.p/meson-generated_npy_math_complex.c.o
+[78/340] Generating numpy/_core/_umath_doc_generated with a custom command
+[79/340] Generating 'numpy/_core/_multiarray_tests.cpython-314-aarch64-linux-android.so.p/_multiarray_tests.c'
+[80/340] Compiling C object numpy/_core/libnpymath.a.p/src_npymath_npy_math.c.o
+[81/340] Generating 'numpy/_core/_multiarray_tests.cpython-314-aarch64-linux-android.so.p/templ_common.h'
+[82/340] Compiling C++ object numpy/_core/libnpymath.a.p/src_npymath_halffloat.cpp.o
+[83/340] Compiling C object numpy/_core/lib_umath_tests.dispatch.h_baseline.a.p/src_umath__umath_tests.dispatch.c.o
+[84/340] Generating 'numpy/_core/_umath_tests.cpython-314-aarch64-linux-android.so.p/_umath_tests.c'
+[85/340] Compiling C object numpy/_core/lib_umath_tests.dispatch.h_ASIMDHP.a.p/src_umath__umath_tests.dispatch.c.o
+[86/340] Compiling C object numpy/_core/libargfunc.dispatch.h_baseline.a.p/meson-generated_argfunc.dispatch.c.o
+[87/340] Compiling C object numpy/_core/libloops_arithm_fp.dispatch.h_baseline.a.p/meson-generated_loops_arithm_fp.dispatch.c.o
+[88/340] Compiling C object numpy/_core/libloops_arithmetic.dispatch.h_baseline.a.p/meson-generated_loops_arithmetic.dispatch.c.o
+[89/340] Compiling C object numpy/_core/libloops_comparison.dispatch.h_baseline.a.p/meson-generated_loops_comparison.dispatch.c.o
+[90/340] Compiling C object numpy/_core/libloops_exponent_log.dispatch.h_baseline.a.p/meson-generated_loops_exponent_log.dispatch.c.o
+[91/340] Compiling C++ object numpy/_core/libhighway_qsort_16bit.dispatch.h_ASIMDHP.a.p/src_npysort_highway_qsort_16bit.dispatch.cpp.o
+[92/340] Compiling C++ object numpy/_core/libloops_hyperbolic.dispatch.h_baseline.a.p/meson-generated_loops_hyperbolic.dispatch.cpp.o
+[93/340] Compiling C++ object numpy/_core/libhighway_qsort.dispatch.h_ASIMD.a.p/src_npysort_highway_qsort.dispatch.cpp.o
+[94/340] Compiling C object numpy/_core/libloops_modulo.dispatch.h_baseline.a.p/meson-generated_loops_modulo.dispatch.c.o
+[95/340] Compiling C++ object numpy/_core/libloops_logical.dispatch.h_baseline.a.p/src_umath_loops_logical.dispatch.cpp.o
+[96/340] Compiling C object numpy/_core/libloops_umath_fp.dispatch.h_baseline.a.p/meson-generated_loops_umath_fp.dispatch.c.o
+[97/340] Compiling C object numpy/_core/libloops_minmax.dispatch.h_baseline.a.p/meson-generated_loops_minmax.dispatch.c.o
+[98/340] Compiling C++ object numpy/_core/libloops_trigonometric.dispatch.h_baseline.a.p/src_umath_loops_trigonometric.dispatch.cpp.o
+[99/340] Compiling C object numpy/_core/libloops_unary.dispatch.h_baseline.a.p/meson-generated_loops_unary.dispatch.c.o
+[100/340] Compiling C object numpy/_core/libloops_unary_complex.dispatch.h_baseline.a.p/meson-generated_loops_unary_complex.dispatch.c.o
+[101/340] Compiling C object numpy/_core/libloops_unary_fp_le.dispatch.h_baseline.a.p/meson-generated_loops_unary_fp_le.dispatch.c.o
+[102/340] Compiling C object numpy/_core/libloops_unary_fp.dispatch.h_baseline.a.p/meson-generated_loops_unary_fp.dispatch.c.o
+[103/340] Compiling C object numpy/_core/libloops_half.dispatch.h_baseline.a.p/meson-generated_loops_half.dispatch.c.o
+[104/340] Generating 'numpy/_core/_multiarray_umath.cpython-314-aarch64-linux-android.so.p/arraytypes.h'
+[105/340] Generating 'numpy/_core/_multiarray_umath.cpython-314-aarch64-linux-android.so.p/npy_sort.h'
+[106/340] Generating 'numpy/_core/_multiarray_umath.cpython-314-aarch64-linux-android.so.p/arraytypes.c'
+[107/340] Generating 'numpy/_core/_multiarray_umath.cpython-314-aarch64-linux-android.so.p/einsum.c'
+[108/340] Compiling C++ object numpy/_core/libunique_hash.a.p/src_multiarray_unique.cpp.o
+FAILED: [code=1] numpy/_core/libunique_hash.a.p/src_multiarray_unique.cpp.o 
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++ -Inumpy/_core/libunique_hash.a.p -Inumpy/_core -I../numpy/_core -Inumpy/_core/include -I../numpy/_core/include -I../numpy/_core/src/common -I/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/arm64-v8a__ndk_target_24/python3/android-build/android-root/include/python3.14 -I/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/arm64-v8a__ndk_target_24/python3/android-build/android-root/include/python3.14/ -I/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -I/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/numpy/arm64-v8a__ndk_target_24/numpy/p4a_android_build/meson_cpu -fdiagnostics-color=always -DNDEBUG -Wall -Winvalid-pch -std=c++17 -O3 -ftrapping-math -Wno-unsupported-floating-point-opt -DNPY_HAVE_NEON_VFPV4 -DNPY_HAVE_NEON_FP16 -DNPY_HAVE_NEON -DNPY_HAVE_ASIMD -target aarch64-linux-android24 -fomit-frame-pointer -march=armv8-a -fPIC -DANDROID -fPIC -DNPY_INTERNAL_BUILD -DHAVE_NPY_CONFIG_H -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE=1 -D_LARGEFILE64_SOURCE=1 -fexceptions -fno-rtti -MD -MQ numpy/_core/libunique_hash.a.p/src_multiarray_unique.cpp.o -MF numpy/_core/libunique_hash.a.p/src_multiarray_unique.cpp.o.d -o numpy/_core/libunique_hash.a.p/src_multiarray_unique.cpp.o -c ../numpy/_core/src/multiarray/unique.cpp
+../numpy/_core/src/multiarray/unique.cpp:123:6: error: no template named 'unordered_map' in namespace 'std'; did you mean 'unordered_set'?
+std::unordered_map<int, function_type> unique_funcs = {
+~~~~~^~~~~~~~~~~~~
+     unordered_set
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:382:28: note: 'unordered_set' declared here
+class _LIBCPP_TEMPLATE_VIS unordered_set
+                           ^
+../numpy/_core/src/multiarray/unique.cpp:123:40: error: no matching constructor for initialization of 'std::unordered_set<int, function_type>' (aka 'unordered_set<int, function<_object *(tagPyArrayObject *)>>')
+std::unordered_map<int, function_type> unique_funcs = {
+                                       ^              ~
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:449:9: note: candidate constructor template not viable: requires 6 arguments, but 19 were provided
+        unordered_set(_InputIterator __first, _InputIterator __last,
+        ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:445:9: note: candidate constructor template not viable: requires at most 5 arguments, but 19 were provided
+        unordered_set(_InputIterator __first, _InputIterator __last,
+        ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:459:9: note: candidate constructor template not viable: requires 5 arguments, but 19 were provided
+        unordered_set(_InputIterator __first, _InputIterator __last,
+        ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:476:5: note: candidate constructor not viable: requires 5 arguments, but 19 were provided
+    unordered_set(initializer_list<value_type> __il, size_type __n,
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:440:5: note: candidate constructor not viable: requires 4 arguments, but 19 were provided
+    unordered_set(size_type __n, const hasher& __hf, const key_equal& __eql,
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:455:9: note: candidate constructor template not viable: requires 4 arguments, but 19 were provided
+        unordered_set(_InputIterator __first, _InputIterator __last,
+        ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:473:5: note: candidate constructor not viable: requires at most 4 arguments, but 19 were provided
+    unordered_set(initializer_list<value_type> __il, size_type __n,
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:485:5: note: candidate constructor not viable: requires 4 arguments, but 19 were provided
+    unordered_set(initializer_list<value_type> __il, size_type __n,
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:430:14: note: candidate constructor not viable: requires at most 3 arguments, but 19 were provided
+    explicit unordered_set(size_type __n, const hasher& __hf = hasher(),
+             ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:437:5: note: candidate constructor not viable: requires 3 arguments, but 19 were provided
+    unordered_set(size_type __n, const hasher& __hf, const allocator_type& __a)
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:481:5: note: candidate constructor not viable: requires 3 arguments, but 19 were provided
+    unordered_set(initializer_list<value_type> __il, size_type __n,
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:434:5: note: candidate constructor not viable: requires 2 arguments, but 19 were provided
+    unordered_set(size_type __n, const allocator_type& __a)
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:443:9: note: candidate constructor template not viable: requires 2 arguments, but 19 were provided
+        unordered_set(_InputIterator __first, _InputIterator __last);
+        ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:466:5: note: candidate constructor not viable: requires 2 arguments, but 19 were provided
+    unordered_set(const unordered_set& __u, const allocator_type& __a);
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:471:5: note: candidate constructor not viable: requires 2 arguments, but 19 were provided
+    unordered_set(unordered_set&& __u, const allocator_type& __a);
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:464:14: note: candidate constructor not viable: requires single argument '__a', but 19 arguments were provided
+    explicit unordered_set(const allocator_type& __a);
+             ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:465:5: note: candidate constructor not viable: requires single argument '__u', but 19 arguments were provided
+    unordered_set(const unordered_set& __u);
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:469:5: note: candidate constructor not viable: requires single argument '__u', but 19 arguments were provided
+    unordered_set(unordered_set&& __u)
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:472:5: note: candidate constructor not viable: requires single argument '__il', but 19 arguments were provided
+    unordered_set(initializer_list<value_type> __il);
+    ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:423:5: note: candidate constructor not viable: requires 0 arguments, but 19 were provided
+    unordered_set()
+    ^
+../numpy/_core/src/multiarray/unique.cpp:173:28: error: type 'std::unordered_set<int, function_type>' (aka 'unordered_set<int, function<_object *(tagPyArrayObject *)>>') does not provide a subscript operator
+        return unique_funcs[type](arr);
+               ~~~~~~~~~~~~^~~~~
+In file included from ../numpy/_core/src/multiarray/unique.cpp:6:
+In file included from /root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:364:
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/__hash_table:2458:21: error: no matching function for call to object of type 'std::__hash_table<int, std::function<_object *(tagPyArrayObject *)>, std::equal_to<int>, std::allocator<int>>::hasher' (aka 'std::function<_object *(tagPyArrayObject *)>')
+    size_t __hash = hash_function()(__k);
+                    ^~~~~~~~~~~~~~~
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/unordered_set:677:69: note: in instantiation of function template specialization 'std::__hash_table<int, std::function<_object *(tagPyArrayObject *)>, std::equal_to<int>, std::allocator<int>>::find<int>' requested here
+    iterator       find(const key_type& __k)       {return __table_.find(__k);}
+                                                                    ^
+../numpy/_core/src/multiarray/unique.cpp:169:26: note: in instantiation of member function 'std::unordered_set<int, std::function<_object *(tagPyArrayObject *)>>::find' requested here
+        if (unique_funcs.find(type) == unique_funcs.end()) {
+                         ^
+/root/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/../sysroot/usr/include/c++/v1/functional:2418:9: note: candidate function not viable: no known conversion from 'const int' to 'tagPyArrayObject *' for 1st argument
+    _Rp operator()(_ArgTypes...) const;
+        ^
+4 errors generated.
+[109/340] Generating 'numpy/_core/_multiarray_umath.cpython-314-aarch64-linux-android.so.p/einsum_sumprod.c'
+[110/340] Compiling C object numpy/_core/libloops_autovec.dispatch.h_baseline.a.p/meson-generated_loops_autovec.dispatch.c.o
+ninja: build stopped: subcommand failed.
+
+TIP pass --env-dir and --sdist-extract-dir to keep the build environment and sources, then see https://build.pypa.io/en/stable/how-to/troubleshooting.html#debug-a-failed-build for help debugging a failed build
+ERROR Backend subprocess exited when trying to invoke build_wheel
+
+
+  STDERR:
+
+# Command failed: ('/usr/bin/python3', '-m', 'pythonforandroid.toolchain', 'create', '--dist_name=photohub', '--bootstrap=sdl2', '--requirements=python3,kivy==2.3.0,pillow,requests,opencv', '--arch=arm64-v8a', '--arch=armeabi-v7a', '--copy-libs', '--color=always', '--storage-dir=/content/photohub/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a', '--ndk-api=24', '--ignore-setup-py', '--debug')
+# Error code: 1
+# ENVIRONMENT:
+#     SHELL = '/bin/bash'
+#     COLAB_JUPYTER_TRANSPORT = 'ipc'
+#     AGY_CLI_DISABLE_AUTO_UPDATE = 'true'
+#     CGROUP_MEMORY_EVENTS = '/sys/fs/cgroup/memory.events /var/colab/cgroup/jupyter-children/memory.events'
+#     VM_GCE_METADATA_HOST = '169.254.169.253'
+#     HOSTNAME = '32a52f9c0667'
+#     MODEL_PROXY_HOST = 'https://mp.kaggle.net'
+#     LANGUAGE = 'en_US'
+#     TBE_RUNTIME_ADDR = '172.28.0.1:8011'
+#     GCE_METADATA_TIMEOUT = '3'
+#     COLAB_JUPYTER_IP = '172.28.0.12'
+#     KMP_LISTEN_PORT = '6000'
+#     TF_FORCE_GPU_ALLOW_GROWTH = 'true'
+#     ENV = '/root/.bashrc'
+#     PWD = '/content/photohub'
+#     TBE_EPHEM_CREDS_ADDR = '172.28.0.1:8009'
+#     TBE_CREDS_ADDR = '172.28.0.1:8008'
+#     JPY_SESSION_NAME = '1kiw9XwHyWxPqfg9EYGhGSmfMvY7wLgCW'
+#     COLAB_JUPYTER_TOKEN = ''
+#     LAST_FORCED_REBUILD = '20261020'
+#     TCLLIBPATH = '/usr/share/tcltk/tcllib1.21'
+#     COLAB_KERNEL_MANAGER_PROXY_HOST = '172.28.0.12'
+#     UV_BUILD_CONSTRAINT = ''
+#     USE_AUTH_EPHEM = '1'
+#     COLAB_WARMUP_DEFAULTS = '1'
+#     HOME = '/root'
+#     LANG = 'en_US.UTF-8'
+#     COLAB_ENABLE_SSH = '1'
+#     CLOUDSDK_CONFIG = '/content/.config'
+#     UV_SYSTEM_PYTHON = 'true'
+#     COLAB_RELEASE_TAG = 'release-colab-external-images_20261029-060149_RC00'
+#     PYDEVD_USE_FRAME_EVAL = 'NO'
+#     KMP_TARGET_PORT = '9000'
+#     CLICOLOR = '1'
+#     KMP_EXTRA_ARGS = ('--logtostderr --listen_host=172.28.0.12 --target_host=172.28.0.12 '
+ '--tunnel_background_save_url=https://colab.research.google.com/tun/m/cc48301118ce562b961b3c22d803539adc1e0c19/m-s-usc1b6-tcjmn3ijs9qh '
+ '--tunnel_background_save_delay=10s '
+ '--tunnel_periodic_background_save_frequency=30m0s '
+ '--enable_output_coalescing=true --output_coalescing_required=true '
+ '--use_oneplatform_for_bg_save=true ')
+#     UV_INSTALL_DIR = '/usr/local/bin'
+#     COLAB_KERNEL_MANAGER_PROXY_PORT = '6000'
+#     CLOUDSDK_PYTHON = 'python3'
+#     ENABLE_DIRECTORYPREFETCHER = '1'
+#     NO_GCE_CHECK = 'False'
+#     JPY_PARENT_PID = '106'
+#     COLAB_NOTEBOOK_ID = '1kiw9XwHyWxPqfg9EYGhGSmfMvY7wLgCW'
+#     UV_BREAK_SYSTEM_PACKAGES = 'false'
+#     PYTHONPATH = '/env/python'
+#     TERM = 'xterm-color'
+#     GIT_PAGER = 'cat'
+#     SHLVL = '1'
+#     PAGER = 'cat'
+#     COLAB_LANGUAGE_SERVER_PROXY = '/usr/colab/bin/language_service'
+#     UV_CONSTRAINT = ''
+#     PYTHONUTF8 = '1'
+#     MPLBACKEND = 'module://matplotlib_inline.backend_inline'
+#     P4A_EXTRA_ARGS = '--no-build-isolation'
+#     COLAB_GPU = ''
+#     GCS_READ_CACHE_BLOCK_SIZE_MB = '16'
+#     LC_ALL = 'en_US.UTF-8'
+#     _PYVIZ_COMMS_INSTALLED = '1'
+#     COLAB_FILE_HANDLER_ADDR = 'localhost:3453'
+#     PATH = '/root/.buildozer/android/platform/apache-ant-1.9.4/bin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tools/node/bin:/tools/google-cloud-sdk/bin'
+#     COLAB_IMAGE_TYPE = 'cpu'
+#     PYTHONWARNINGS = 'ignore:::pip._internal.cli.base_command'
+#     DEBIAN_FRONTEND = 'noninteractive'
+#     COLAB_BACKEND_VERSION = 'next'
+#     OLDPWD = '/'
+#     _ = '/usr/local/bin/buildozer'
+#     PACKAGES_PATH = '/root/.buildozer/android/packages'
+#     ANDROIDSDK = '/root/.buildozer/android/platform/android-sdk'
+#     ANDROIDNDK = '/root/.buildozer/android/platform/android-ndk-r25b'
+#     ANDROIDAPI = '34'
+#     ANDROIDMINAPI = '24'
+# 
+# Buildozer failed to execute the last command
+# The error might be hidden in the log above this error
+# Please read the full log, and search for it before
+# raising an issue with buildozer itself.
+# In case of a bug report, please add a full log with log_level = 2
