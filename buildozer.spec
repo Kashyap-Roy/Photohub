@@ -23,7 +23,16 @@ version = 1.0.0
 
 # (list) Application requirements
 # FIXED: Let python3 dynamically match the host runner version
-requirements = python3, kivy==2.3.0, android, pyjnius>=1.8.0
+requirements = python3==3.11.5,hostpython3==3.11.5,kivy==2.3.0,pyjnius,android
+
+# add these two under [app]:
+p4a.branch = v2024.01.21
+
+# change the NDK and API to versions that release is tested with:
+android.api = 33
+android.minapi = 24
+android.sdk = 33
+android.ndk = 25b
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
 orientation = portrait
