@@ -23,7 +23,7 @@ version = 1.0.0
 
 # (list) Application requirements
 # FIXED: Replaced buggy 'master' version with stable, clean deployment recipes 
-requirements = python3==3.11.9, kivy==2.3.0, android, pyjnius>=1.8.0
+requirements = python3, kivy==2.3.0, android, pyjnius>=1.8.0
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
 orientation = portrait
