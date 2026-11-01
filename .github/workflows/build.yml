@@ -1,0 +1,29 @@
+name: Build PhotoHub APK
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04 # Locks down a reliable, stable Linux version
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Buildozer Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          pip install --upgrade pip setuptools wheel virtualenv "cython>=3.0.0,<3.1.0" buildozer
+
+      - name: Compile APK with Buildozer
+        run: export BUILDOZER_WARN_ON_ROOT=0 && buildozer android debug
+
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: PhotoHub-Android-APK
+          path: bin/*.apk
