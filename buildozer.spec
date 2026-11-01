@@ -16,7 +16,6 @@ orientation = portrait
 fullscreen = 0
 
 android.permissions = CAMERA,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,INTERNET,ACCESS_NETWORK_STATE
-android.features = android.hardware.camera,android.hardware.camera.front
 
 android.api = 33
 android.minapi = 24
