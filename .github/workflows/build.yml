@@ -7,6 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 1. Force down stable Python 3.11
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -18,20 +19,30 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # 2. Install dependencies directly into the host system
       - name: Install Buildozer Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          python -m pip install --upgrade pip setuptools wheel virtualenv "cython>=3.0.0,<3.1.0" buildozer
 
-      # FIXED: Added a hard system remove command to wipe out the hidden Python 3.14 directory structures completely
-      - name: Deep Purge Old Cache
+      # 3. Create a strict virtual environment to block Python 3.14 exposure
+      - name: Run Build inside Python venv
         run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip setuptools wheel "cython>=3.0.0,<3.1.0" buildozer
+          
+          # Force clear out any corrupted ghost caches from previous broken builds
           rm -rf .buildozer/
           rm -rf ~/.buildozer/
-          mkdir -p ~/.buildozer/android/platform/
+          
+          # Execute compilation inside the isolated environment
+          export BUILDOZER_WARN_ON_ROOT=0
+          buildozer android debug
 
-      - name: Compile APK with Buildozer
-        run: |
-          export BUILDOZER_WARN_ON_ROOT=0 
-          python -m buildozer android debug
+      # 4. Upload your finished APK
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoHub-Android-APK
+          path: bin/*.apk
